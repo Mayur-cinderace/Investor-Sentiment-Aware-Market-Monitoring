@@ -18,7 +18,7 @@ def load_stock_data():
     df_long = pd.melt(df_raw, id_vars=['Date'], value_vars=df_raw.columns[1:], var_name='Metric', value_name='Value')
     df_long['Ticker'] = np.tile(['AAPL', 'GOOGL', 'TSLA'] * 5, len(df_raw))
     df_prices = df_long.pivot_table(index=['Date', 'Ticker'], columns='Metric', values='Value', aggfunc='first').reset_index()
-    df_prices['Date'] = pd.to_datetime(df_prices['Date'], format='%d-%m-%y')
+    df_prices['Date'] = pd.to_datetime(df_prices['Date'], errors='coerce', infer_datetime_format=True)
     numeric_cols = ['Close', 'High', 'Low', 'Open', 'Volume']
     df_prices[numeric_cols] = df_prices[numeric_cols].astype(float)
     df_prices['Return'] = df_prices.groupby('Ticker')['Close'].pct_change()

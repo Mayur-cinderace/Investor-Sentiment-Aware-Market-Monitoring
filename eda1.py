@@ -20,7 +20,7 @@ def load_stock_data():
     df_long = pd.melt(df_raw, id_vars=['Date'], value_vars=df_raw.columns[1:], var_name='Metric', value_name='Value')
     df_long['Ticker'] = np.tile(['AAPL', 'GOOGL', 'TSLA'] * 5, len(df_raw))
     df_prices = df_long.pivot_table(index=['Date', 'Ticker'], columns='Metric', values='Value', aggfunc='first').reset_index()
-    df_prices['Date'] = pd.to_datetime(df_prices['Date'], format='%d-%m-%y')
+    df_prices['Date'] = pd.to_datetime(df_prices['Date'], format='%Y-%m-%d')
     numeric_cols = ['Close', 'High', 'Low', 'Open', 'Volume']
     df_prices[numeric_cols] = df_prices[numeric_cols].astype(float)
     df_prices['Return'] = df_prices.groupby('Ticker')['Close'].pct_change()
@@ -57,9 +57,9 @@ df_prices['date'] = df_prices['Date'].dt.date
 daily_sent_total['date'] = pd.to_datetime(daily_sent_total['date']).dt.date
 
 df_merged = df_prices.merge(daily_sent_total, on='date', how='left')
-df_merged['sentiment'] = df_merged['sentiment'].fillna(method='ffill').fillna(0)
+df_merged['sentiment'] = df_merged['sentiment'].ffill().fillna(0)
 df_merged = df_merged.sort_values(['Ticker', 'Date']).reset_index(drop=True)
-df_merged['sentiment_lag1'] = df_merged.groupby('Ticker')['sentiment'].shift(1).fillna(method='bfill').fillna(0)
+df_merged['sentiment_lag1'] = df_merged.groupby('Ticker')['sentiment'].shift(1).bfill().fillna(0)
 
 print("\nComputing correlation matrix...")
 corr_features = df_merged[['Close', 'Return', 'Volume', 'sentiment', 'sentiment_lag1']]
@@ -111,7 +111,7 @@ fig3.show()
 print("Generating Volume & Sentiment plot...")
 vol_sent = df_merged.groupby('Date').agg({'Volume': 'sum', 'sentiment': 'mean'}).reset_index()
 fig4 = make_subplots(specs=[[{"secondary_y": True}]])
-fig4.add_trace(go.Bar(x=vol_sent['Date'], y=vol_sent['Volume']/1e6, name='Volume (M)', marker_color='lightblue'), secondary_y=False)
+fig4.add_trace(go.Bar(x=vol_sent['Date'], y=vol_sent['Volume']/1e6, name='Volume (M)', marker_color='green'), secondary_y=False)
 fig4.add_trace(go.Scatter(x=vol_sent['Date'], y=vol_sent['sentiment'], name='Sentiment', line=dict(color='red')), secondary_y=True)
 fig4.update_layout(title="Volume & Sentiment", height=400, barmode='overlay', hovermode='x unified')
 fig4.update_yaxes(title_text="Volume (M)", secondary_y=False)
