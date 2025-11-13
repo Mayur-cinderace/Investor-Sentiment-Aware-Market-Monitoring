@@ -1,0 +1,10 @@
+artifact_location: file:///D:/for_now/mlruns/259183567906258607/models/m-c162059b4d424c84a38dc803008a32fb/artifacts
+creation_timestamp: 1763006054957
+experiment_id: '259183567906258607'
+last_updated_timestamp: 1763006063981
+model_id: m-c162059b4d424c84a38dc803008a32fb
+model_type: null
+name: GOOGL_lstm
+source_run_id: e51b8015c4684efca50049b1906a0be8
+status: 2
+status_message: null

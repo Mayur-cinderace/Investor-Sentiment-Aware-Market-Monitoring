@@ -1,0 +1,14 @@
+artifact_uri: file:///D:/for_now/mlruns/259183567906258607/626029e309274d188f4f0b65218a50d7/artifacts
+end_time: 1763006962159
+entry_point_name: ''
+experiment_id: '259183567906258607'
+lifecycle_stage: active
+run_id: 626029e309274d188f4f0b65218a50d7
+run_name: AAPL_RandomForest
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1763006951461
+status: 3
+tags: []
+user_id: Dell

@@ -1,0 +1,10 @@
+artifact_location: file:///D:/for_now/mlruns/259183567906258607/models/m-4d2b2d8682da442aa9f44440316d0646/artifacts
+creation_timestamp: 1763006029424
+experiment_id: '259183567906258607'
+last_updated_timestamp: 1763006035780
+model_id: m-4d2b2d8682da442aa9f44440316d0646
+model_type: null
+name: GOOGL_rf
+source_run_id: 09615a169c5844c289df8779f72b0e98
+status: 2
+status_message: null

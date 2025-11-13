@@ -1,0 +1,14 @@
+artifact_uri: file:///D:/for_now/mlruns/259183567906258607/fd37e4f6c97a4944b1ee3e47faebf010/artifacts
+end_time: 1763006988920
+entry_point_name: ''
+experiment_id: '259183567906258607'
+lifecycle_stage: active
+run_id: fd37e4f6c97a4944b1ee3e47faebf010
+run_name: AAPL_LSTM
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1763006980241
+status: 3
+tags: []
+user_id: Dell

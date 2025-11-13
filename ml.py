@@ -1,11 +1,20 @@
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.ensemble import RandomForestRegressor
 import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
+import mlflow
+import mlflow.sklearn
+import mlflow.pytorch
+import joblib
+import os
+
+mlflow.set_tracking_uri("./mlruns")
+mlflow.set_experiment("Investor-Sentiment-Aware-Models")
 
 def load_stock_data():
     df_raw = pd.read_csv(r'data\stock_prices.csv', skiprows=1, header=0, na_values=[''])
@@ -18,7 +27,7 @@ def load_stock_data():
     df_long = pd.melt(df_raw, id_vars=['Date'], value_vars=df_raw.columns[1:], var_name='Metric', value_name='Value')
     df_long['Ticker'] = np.tile(['AAPL', 'GOOGL', 'TSLA'] * 5, len(df_raw))
     df_prices = df_long.pivot_table(index=['Date', 'Ticker'], columns='Metric', values='Value', aggfunc='first').reset_index()
-    df_prices['Date'] = pd.to_datetime(df_prices['Date'], errors='coerce', infer_datetime_format=True)
+    df_prices['Date'] = pd.to_datetime(df_prices['Date'], errors='coerce')
     numeric_cols = ['Close', 'High', 'Low', 'Open', 'Volume']
     df_prices[numeric_cols] = df_prices[numeric_cols].astype(float)
     df_prices['Return'] = df_prices.groupby('Ticker')['Close'].pct_change()
@@ -69,7 +78,7 @@ df_merged['sentiment'] = df_merged['sentiment'].ffill().fillna(0)
 df_merged = df_merged.sort_values(['Ticker', 'Date']).reset_index(drop=True)
 df_merged['sentiment_lag1'] = df_merged.groupby('Ticker')['sentiment'].shift(1).bfill().fillna(0)
 
-ticker = 'TSLA'
+ticker = 'GOOGL'
 df_ticker = df_merged[df_merged['Ticker'] == ticker].copy()
 df_ticker = df_ticker.sort_values('Date')
 
@@ -130,22 +139,7 @@ def predict_model(model, loader):
             preds.extend(outputs.squeeze().numpy())
     return np.array(preds)
 
-class LinearModel(nn.Module):
-    def __init__(self, input_size):
-        super().__init__()
-        self.linear = nn.Linear(input_size, 1)
-
-    def forward(self, x):
-        return self.linear(x)
-
 input_size = X.shape[1]
-linear_model = LinearModel(input_size)
-train_model(linear_model, train_loader)
-y_pred_linear_scaled = predict_model(linear_model, test_loader)
-y_pred_linear = scaler_y.inverse_transform(y_pred_linear_scaled.reshape(-1,1)).flatten()
-mse_linear = np.mean((y_test - y_pred_linear_scaled)**2)
-mae_linear = np.mean(np.abs(y_test - y_pred_linear_scaled))
-print(f"Linear Regression - MSE: {mse_linear:.6f}, MAE: {mae_linear:.6f}")
 
 class MLPModel(nn.Module):
     def __init__(self, input_size):
@@ -161,12 +155,6 @@ class MLPModel(nn.Module):
         return x
 
 mlp_model = MLPModel(input_size)
-train_model(mlp_model, train_loader)
-y_pred_mlp_scaled = predict_model(mlp_model, test_loader)
-y_pred_mlp = scaler_y.inverse_transform(y_pred_mlp_scaled.reshape(-1,1)).flatten()
-mse_mlp = np.mean((y_test - y_pred_mlp_scaled)**2)
-mae_mlp = np.mean(np.abs(y_test - y_pred_mlp_scaled))
-print(f"MLP - MSE: {mse_mlp:.6f}, MAE: {mae_mlp:.6f}")
 
 def create_sequences(data_X, data_y, seq_length):
     xs, ys = [], []
@@ -213,26 +201,136 @@ class LSTMModel(nn.Module):
 
 hidden_size = 50
 num_layers = 2
-lstm_model = LSTMModel(input_size, hidden_size, num_layers)
-train_model(lstm_model, train_seq_loader)
-y_pred_lstm_scaled = predict_model(lstm_model, test_seq_loader)
-y_pred_lstm = scaler_y.inverse_transform(y_pred_lstm_scaled.reshape(-1,1)).flatten()
-mse_lstm = np.mean((y_test_seq - y_pred_lstm_scaled)**2)
-mae_lstm = np.mean(np.abs(y_test_seq - y_pred_lstm_scaled))
-print(f"LSTM - MSE: {mse_lstm:.6f}, MAE: {mae_lstm:.6f}")
 
-dates_test = df_ticker['Date'].iloc[train_size:train_size+len(y_test)].values
+def run_models_for_ticker(ticker, seq_length=10):
+    with mlflow.start_run(run_name=f"{ticker}_models"):
+        mlflow.log_param("ticker", ticker)
+        mlflow.log_param("seq_length", seq_length)
+        mlflow.log_param("test_split", 0.2)
+        
+        df_t = df_merged[df_merged['Ticker'] == ticker].copy()
+        df_t = df_t.sort_values('Date')
+        df_t['return_lag1'] = df_t['Return'].shift(1)
+        df_t['volume_lag1'] = df_t['Volume'].shift(1)
+        df_t = df_t.dropna()
+        df_t['target_return'] = df_t['Return'].shift(-1)
+        df_t = df_t.dropna()
+        features_t = ['return_lag1', 'volume_lag1', 'sentiment_lag1']
+        X_t = df_t[features_t].values
+        y_t = df_t['target_return'].values
+        scaler_X_t = MinMaxScaler()
+        scaler_y_t = MinMaxScaler()
+        Xs = scaler_X_t.fit_transform(X_t)
+        ys = scaler_y_t.fit_transform(y_t.reshape(-1, 1)).flatten()
+        train_size_t = int(len(Xs) * 0.8)
+        X_train_t, X_test_t = Xs[:train_size_t], Xs[train_size_t:]
+        y_train_t, y_test_t = ys[:train_size_t], ys[train_size_t:]
 
-plt.figure(figsize=(14, 8))
-plt.plot(dates_test, scaler_y.inverse_transform(y_scaled[train_size:train_size+len(y_test)].reshape(-1,1)), label='Actual', color='black')
-plt.plot(dates_test, y_pred_linear, label='Linear Regression', color='blue')
-plt.plot(dates_test, y_pred_mlp, label='MLP', color='green')
-plt.plot(dates_test[:len(y_pred_lstm)], y_pred_lstm, label='LSTM', color='red')
-plt.title(f'{ticker} Next Day Return Predictions (Sentiment-Aware)')
-plt.xlabel('Date')
-plt.ylabel('Return')
-plt.legend()
-plt.xticks(rotation=45)
-plt.tight_layout()
-plt.savefig('model_predictions.png')
-plt.show()
+        if len(X_train_t) == 0 or len(X_test_t) == 0:
+            print(f"Not enough data for ticker {ticker} after splitting (train={len(X_train_t)}, test={len(X_test_t)}). Skipping.")
+            return None
+
+        rf = RandomForestRegressor(n_estimators=200, random_state=42)
+        rf.fit(X_train_t, y_train_t)
+        y_rf_scaled = rf.predict(X_test_t)
+        y_rf = scaler_y_t.inverse_transform(y_rf_scaled.reshape(-1, 1)).flatten()
+        mse_rf = np.mean((y_test_t - y_rf_scaled)**2)
+        mae_rf = np.mean(np.abs(y_test_t - y_rf_scaled))
+        
+        with mlflow.start_run(run_name=f"{ticker}_RandomForest", nested=True):
+            mlflow.log_param("model_type", "RandomForest")
+            mlflow.log_param("n_estimators", 200)
+            mlflow.log_metric("mse", mse_rf)
+            mlflow.log_metric("mae", mae_rf)
+            mlflow.sklearn.log_model(rf, artifact_path=f"{ticker}_rf")
+            print(f"{ticker} - RandomForest MSE: {mse_rf:.6f}, MAE: {mae_rf:.6f}")
+        
+        mlflow.log_metric(f"{ticker}_rf_mse", mse_rf)
+        mlflow.log_metric(f"{ticker}_rf_mae", mae_rf)
+
+        train_ds = TimeSeriesDataset(X_train_t, y_train_t)
+        test_ds = TimeSeriesDataset(X_test_t, y_test_t)
+        train_loader_t = DataLoader(train_ds, batch_size=32, shuffle=False)
+        test_loader_t = DataLoader(test_ds, batch_size=32, shuffle=False)
+
+        mlp = MLPModel(input_size)
+        train_model(mlp, train_loader_t)
+        y_mlp_scaled = predict_model(mlp, test_loader_t)
+        y_mlp = scaler_y_t.inverse_transform(y_mlp_scaled.reshape(-1, 1)).flatten()
+        mse_mlp = np.mean((y_test_t - y_mlp_scaled)**2)
+        mae_mlp = np.mean(np.abs(y_test_t - y_mlp_scaled))
+        
+        with mlflow.start_run(run_name=f"{ticker}_MLP", nested=True):
+            mlflow.log_param("model_type", "MLP")
+            mlflow.log_param("hidden_sizes", [50, 25])
+            mlflow.log_metric("mse", mse_mlp)
+            mlflow.log_metric("mae", mae_mlp)
+            mlflow.pytorch.log_model(mlp, artifact_path=f"{ticker}_mlp")
+            print(f"{ticker} - MLP MSE: {mse_mlp:.6f}, MAE: {mae_mlp:.6f}")
+        
+        mlflow.log_metric(f"{ticker}_mlp_mse", mse_mlp)
+        mlflow.log_metric(f"{ticker}_mlp_mae", mae_mlp)
+
+        X_seq_t, y_seq_t = create_sequences(Xs, ys, seq_length)
+        if len(X_seq_t) > 0:
+            train_size_seq_t = int(len(X_seq_t) * 0.8)
+            X_train_seq_t, X_test_seq_t = X_seq_t[:train_size_seq_t], X_seq_t[train_size_seq_t:]
+            y_train_seq_t, y_test_seq_t = y_seq_t[:train_size_seq_t], y_seq_t[train_size_seq_t:]
+            train_seq_ds_t = SeqDataset(X_train_seq_t, y_train_seq_t)
+            test_seq_ds_t = SeqDataset(X_test_seq_t, y_test_seq_t)
+            train_seq_loader_t = DataLoader(train_seq_ds_t, batch_size=32, shuffle=False)
+            test_seq_loader_t = DataLoader(test_seq_ds_t, batch_size=32, shuffle=False)
+            lstm = LSTMModel(input_size, hidden_size, num_layers)
+            train_model(lstm, train_seq_loader_t)
+            y_lstm_scaled = predict_model(lstm, test_seq_loader_t)
+            y_lstm = scaler_y_t.inverse_transform(y_lstm_scaled.reshape(-1, 1)).flatten()
+            mse_lstm = np.mean((y_test_seq_t - y_lstm_scaled)**2)
+            mae_lstm = np.mean(np.abs(y_test_seq_t - y_lstm_scaled))
+            
+            with mlflow.start_run(run_name=f"{ticker}_LSTM", nested=True):
+                mlflow.log_param("model_type", "LSTM")
+                mlflow.log_param("hidden_size", hidden_size)
+                mlflow.log_param("num_layers", num_layers)
+                mlflow.log_metric("mse", mse_lstm)
+                mlflow.log_metric("mae", mae_lstm)
+                mlflow.pytorch.log_model(lstm, artifact_path=f"{ticker}_lstm")
+                print(f"{ticker} - LSTM MSE: {mse_lstm:.6f}, MAE: {mae_lstm:.6f}")
+            
+            mlflow.log_metric(f"{ticker}_lstm_mse", mse_lstm)
+            mlflow.log_metric(f"{ticker}_lstm_mae", mae_lstm)
+        else:
+            y_lstm = np.array([])
+
+        dates_test = df_t['Date'].iloc[train_size_t:train_size_t + len(y_test_t)].values
+        dates_test = pd.to_datetime(dates_test)
+        y_actual = scaler_y_t.inverse_transform(y_test_t.reshape(-1, 1)).flatten()
+        return dates_test, y_actual, y_rf, y_mlp, y_lstm
+
+tickers = ['AAPL', 'GOOGL', 'TSLA']
+for t in tickers:
+    try:
+        res = run_models_for_ticker(t)
+    except Exception as e:
+        print(f"Error processing {t}: {e}")
+        continue
+    if res is None:
+        continue
+    dates_test, y_actual, y_rf, y_mlp, y_lstm = res
+    plt.figure(figsize=(14, 6))
+    plt.plot(dates_test, y_actual, label='Actual', color='black')
+    if len(y_rf) > 0:
+        plt.plot(dates_test, y_rf, label='RandomForest', color='blue')
+    if len(y_mlp) > 0:
+        plt.plot(dates_test, y_mlp, label='MLP', color='green')
+    if len(y_lstm) > 0:
+        plt.plot(dates_test[:len(y_lstm)], y_lstm, label='LSTM', color='red')
+    plt.title(f"{t} Next Day Return Predictions (Sentiment-Aware)")
+    plt.xlabel('Date')
+    plt.ylabel('Return')
+    plt.legend()
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    out_file = f'model_predictions_{t}.png'
+    plt.savefig(out_file)
+    print(f"Saved plot for {t} to {out_file}")
+    plt.show()

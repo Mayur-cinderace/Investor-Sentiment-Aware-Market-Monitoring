@@ -1,0 +1,10 @@
+artifact_location: file:///D:/for_now/mlruns/259183567906258607/models/m-b9bda24b2d63417ea364ee9db801f453/artifacts
+creation_timestamp: 1763006037904
+experiment_id: '259183567906258607'
+last_updated_timestamp: 1763006047719
+model_id: m-b9bda24b2d63417ea364ee9db801f453
+model_type: null
+name: GOOGL_mlp
+source_run_id: 8809d254d7154b00a68c1a1995d346c7
+status: 2
+status_message: null

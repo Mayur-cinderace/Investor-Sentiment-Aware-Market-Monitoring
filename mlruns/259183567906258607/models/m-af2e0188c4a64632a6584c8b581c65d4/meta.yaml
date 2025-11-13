@@ -1,0 +1,10 @@
+artifact_location: file:///D:/for_now/mlruns/259183567906258607/models/m-af2e0188c4a64632a6584c8b581c65d4/artifacts
+creation_timestamp: 1763006080358
+experiment_id: '259183567906258607'
+last_updated_timestamp: 1763006087357
+model_id: m-af2e0188c4a64632a6584c8b581c65d4
+model_type: null
+name: TSLA_rf
+source_run_id: 5956e30018874e8d93b22cc29aa6c508
+status: 2
+status_message: null

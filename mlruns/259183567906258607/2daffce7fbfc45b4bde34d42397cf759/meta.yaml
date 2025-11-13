@@ -1,0 +1,14 @@
+artifact_uri: file:///D:/for_now/mlruns/259183567906258607/2daffce7fbfc45b4bde34d42397cf759/artifacts
+end_time: 1763006064013
+entry_point_name: ''
+experiment_id: '259183567906258607'
+lifecycle_stage: active
+run_id: 2daffce7fbfc45b4bde34d42397cf759
+run_name: GOOGL_models
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1763006028465
+status: 3
+tags: []
+user_id: Dell

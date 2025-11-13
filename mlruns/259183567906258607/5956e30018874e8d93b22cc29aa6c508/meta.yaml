@@ -1,0 +1,14 @@
+artifact_uri: file:///D:/for_now/mlruns/259183567906258607/5956e30018874e8d93b22cc29aa6c508/artifacts
+end_time: 1763006087377
+entry_point_name: ''
+experiment_id: '259183567906258607'
+lifecycle_stage: active
+run_id: 5956e30018874e8d93b22cc29aa6c508
+run_name: TSLA_RandomForest
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1763006080157
+status: 3
+tags: []
+user_id: Dell

@@ -1,0 +1,10 @@
+artifact_location: file:///D:/for_now/mlruns/259183567906258607/models/m-5ba191b014c04668aa0c41d4733d9bda/artifacts
+creation_timestamp: 1763005997885
+experiment_id: '259183567906258607'
+last_updated_timestamp: 1763006006744
+model_id: m-5ba191b014c04668aa0c41d4733d9bda
+model_type: null
+name: AAPL_lstm
+source_run_id: 691bf282909e42208aa3d95a888e1dac
+status: 2
+status_message: null

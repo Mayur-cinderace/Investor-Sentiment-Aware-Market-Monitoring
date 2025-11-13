@@ -1,0 +1,14 @@
+artifact_uri: file:///D:/for_now/mlruns/259183567906258607/09615a169c5844c289df8779f72b0e98/artifacts
+end_time: 1763006035801
+entry_point_name: ''
+experiment_id: '259183567906258607'
+lifecycle_stage: active
+run_id: 09615a169c5844c289df8779f72b0e98
+run_name: GOOGL_RandomForest
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1763006029261
+status: 3
+tags: []
+user_id: Dell

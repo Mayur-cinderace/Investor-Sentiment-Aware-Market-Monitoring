@@ -1,0 +1,14 @@
+artifact_uri: file:///D:/for_now/mlruns/259183567906258607/b8d48fa646c84640add6665aca24ce40/artifacts
+end_time: 1763005736440
+entry_point_name: ''
+experiment_id: '259183567906258607'
+lifecycle_stage: active
+run_id: b8d48fa646c84640add6665aca24ce40
+run_name: AAPL_models
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1763005735544
+status: 4
+tags: []
+user_id: Dell

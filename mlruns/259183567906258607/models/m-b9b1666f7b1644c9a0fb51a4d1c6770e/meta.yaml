@@ -1,0 +1,10 @@
+artifact_location: file:///D:/for_now/mlruns/259183567906258607/models/m-b9b1666f7b1644c9a0fb51a4d1c6770e/artifacts
+creation_timestamp: 1763007071786
+experiment_id: '259183567906258607'
+last_updated_timestamp: 1763007081108
+model_id: m-b9b1666f7b1644c9a0fb51a4d1c6770e
+model_type: null
+name: TSLA_lstm
+source_run_id: aad317762f7b4de5be92ab2b6be6cc10
+status: 2
+status_message: null

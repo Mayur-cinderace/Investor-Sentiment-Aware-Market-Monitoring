@@ -1,0 +1,10 @@
+artifact_location: file:///D:/for_now/mlruns/259183567906258607/models/m-d916316e468743f593e5c49d929cba1f/artifacts
+creation_timestamp: 1763006951634
+experiment_id: '259183567906258607'
+last_updated_timestamp: 1763006962139
+model_id: m-d916316e468743f593e5c49d929cba1f
+model_type: null
+name: AAPL_rf
+source_run_id: 626029e309274d188f4f0b65218a50d7
+status: 2
+status_message: null
