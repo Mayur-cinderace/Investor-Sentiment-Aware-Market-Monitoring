@@ -4,7 +4,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.ensemble import RandomForestRegressor
 import matplotlib.pyplot as plt
 import torch
-import torch.nn as nn
+import torch.nn as nn 
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 import mlflow

@@ -5,7 +5,6 @@ seaborn
 datetime 
 vaderSentiment
 wordcloud
-streamlit 
 plotly
 streamlit_wordcloud
 mlflow==2.15.1

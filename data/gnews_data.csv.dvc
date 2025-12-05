@@ -1,0 +1,5 @@
+outs:
+- md5: 45f55b5da7043783242dd7d02d7cb4e4
+  size: 6511
+  hash: md5
+  path: gnews_data.csv
