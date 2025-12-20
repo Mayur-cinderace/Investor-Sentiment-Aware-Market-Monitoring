@@ -51,3 +51,50 @@ stages:
       hash: md5
       md5: d932e0c09c9a25a0dcd34841930dd186
       size: 263
+  drift:
+    cmd: python src/drift_detection.py
+    deps:
+    - path: data/processed/merged_features.csv
+      hash: md5
+      md5: 2753e42af95a7ad02942ef348db986f9
+      size: 1580683
+    - path: src/drift_detection.py
+      hash: md5
+      md5: 53cfc12c38b01a69dd6a17a7c4568af5
+      size: 1508
+    outs:
+    - path: drift_reports/drift_summary.json
+      hash: md5
+      md5: b02788aeb9c6383f6d42fffa221fd1d1
+      size: 390
+  retrain_decision:
+    cmd: python src/should_retrain.py
+    deps:
+    - path: drift_reports/drift_summary.json
+      hash: md5
+      md5: b02788aeb9c6383f6d42fffa221fd1d1
+      size: 390
+    - path: src/should_retrain.py
+      hash: md5
+      md5: f0d10a1e559385c7ad47e88175a820d1
+      size: 635
+    outs:
+    - path: drift_reports/retrain_flag.json
+      hash: md5
+      md5: 542694a633acfd23b4f5fd5e2c4c39c6
+      size: 26
+  retrain:
+    cmd: python src/retrain_if_drift.py
+    deps:
+    - path: drift_reports/retrain_flag.json
+      hash: md5
+      md5: 542694a633acfd23b4f5fd5e2c4c39c6
+      size: 26
+    - path: src/retrain_if_drift.py
+      hash: md5
+      md5: b08b7fb398753488537fbb5c9be0af31
+      size: 366
+    - path: src/train_models.py
+      hash: md5
+      md5: 4b5f7613c1495013bdf0b3609d464af6
+      size: 5054
