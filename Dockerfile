@@ -11,4 +11,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD ["dvc", "repro"]
+CMD ["dvc", "repro", "--no-scm"]
