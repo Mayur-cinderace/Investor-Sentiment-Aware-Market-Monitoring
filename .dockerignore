@@ -1,0 +1,27 @@
+# Git & DVC
+.git
+.dvc
+.dvc/cache
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+venv
+venv-drift
+
+# ML artifacts (DO NOT bake into image)
+models
+mlruns
+drift_reports
+
+# Data (optional – keep only if you want runtime download)
+data/raw
+data/processed
+
+# OS junk
+.DS_Store
+Thumbs.db

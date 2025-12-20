@@ -1,0 +1,15 @@
+tickers:
+  - AAPL
+  - GOOGL
+  - TSLA
+
+sequence_length: 10
+
+training:
+  test_split: 0.2
+  epochs: 50
+  batch_size: 32
+
+sentiment:
+  pos_words: ["good", "buy", "up", "rise", "gain", "bull", "profit"]
+  neg_words: ["bad", "sell", "down", "fall", "loss", "bear", "risk"]
