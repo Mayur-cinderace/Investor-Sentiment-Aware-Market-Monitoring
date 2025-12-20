@@ -13,4 +13,4 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 COPY . .
 
-CMD ["dvc", "repro", "--no-scm"]
+CMD ["dvc", "repro"]
