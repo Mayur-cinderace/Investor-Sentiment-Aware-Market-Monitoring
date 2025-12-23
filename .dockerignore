@@ -1,6 +1,5 @@
 # Git & DVC
 .git
-.dvc
 .dvc/cache
 
 # Python
