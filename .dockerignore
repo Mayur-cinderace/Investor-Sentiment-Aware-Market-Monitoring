@@ -11,7 +11,6 @@ __pycache__
 
 # Virtual environments
 venv
-venv-drift
 
 # ML artifacts (DO NOT bake into image)
 models

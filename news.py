@@ -35,7 +35,7 @@ if articles:
     df["source"] = df["source"].apply(lambda s: s.get("name") if isinstance(s, dict) else s)
 
     # Save to CSV
-    df.to_csv("news_articles.csv", index=False, encoding="utf-8")
-    print("✅ Saved to news_articles.csv")
+    df.to_csv("news_articles_1.csv", index=False, encoding="utf-8")
+    print("✅ Saved to news_articles_1.csv")
 else:
     print("⚠️ No articles found.")

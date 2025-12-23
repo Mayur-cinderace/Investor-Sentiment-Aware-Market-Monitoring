@@ -49,4 +49,12 @@ stages:
       - src/train_models.py
       - drift_reports/retrain_flag.json
 
+  stages:
+    retrain:
+      cmd: python src/train_models.py
+      deps:
+        - data/processed/merged_features.csv
+        - data/processed/new_sentiment.csv
+      outs:
+        - models
 
