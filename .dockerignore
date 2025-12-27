@@ -12,13 +12,8 @@ __pycache__
 venv
 
 # ML artifacts (DO NOT bake into image)
-models
 mlruns
 drift_reports
-
-# Data (optional – keep only if you want runtime download)
-data/raw
-data/processed
 
 # OS junk
 .DS_Store

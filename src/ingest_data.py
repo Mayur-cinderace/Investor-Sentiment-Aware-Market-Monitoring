@@ -1,61 +1,46 @@
-# src/ingest_data.py
 import os
 import shutil
 import pandas as pd
-import yfinance as yf
-from datetime import datetime
+from pathlib import Path
 
-RAW_DIR = "data/raw"
-os.makedirs(RAW_DIR, exist_ok=True)
+RAW_DIR = Path("data/raw")
+RAW_DIR.mkdir(exist_ok=True)
 
-TICKERS = ["AAPL", "GOOGL", "TSLA"]
-START_DATE = "2015-01-01"
-END_DATE = datetime.now().strftime("%Y-%m-%d")
+STOCK_FILE = RAW_DIR / "stock_prices.csv"
 
 def fetch_stock_data():
-    frames = []
-    for t in TICKERS:
-        df = yf.download(t, start=START_DATE, end=END_DATE, progress=False)
-        if df.empty:
-            continue
-        df.reset_index(inplace=True)
-        df["Ticker"] = t
-        df["Return"] = df["Close"].pct_change()
-        frames.append(df)
+    """
+    In cloud environments (Codespaces), Yahoo Finance is blocked.
+    If stock_prices.csv already exists, reuse it safely.
+    """
+    if STOCK_FILE.exists():
+        print("Using existing stock_prices.csv (no external fetch)")
+        return
 
-    out = pd.concat(frames, ignore_index=True)
-    out.to_csv(f"{RAW_DIR}/stock_prices.csv", index=False)
-    print("Saved stock_prices.csv")
+    raise RuntimeError(
+        "stock_prices.csv not found. "
+        "Place it manually in data/raw when running in Codespaces."
+    )
 
 def copy_news_files():
-    """
-    Move news data from data/ → data/raw/ so DVC owns it
-    """
-    source_dir = "data"
-    target_dir = "data/raw"
-    os.makedirs(target_dir, exist_ok=True)
+    source_dir = Path("data")
+    target_dir = RAW_DIR
 
-    source_files = [
-        "news_articles.csv",
-        "gnews_data.csv",
-        "reddit_data.csv"
-    ]
+    files = ["news_articles.csv", "gnews_data.csv", "reddit_data.csv"]
 
-    for f in source_files:
-        src = os.path.join(source_dir, f)
-        dst = os.path.join(target_dir, f)
+    for f in files:
+        src = source_dir / f
+        dst = target_dir / f
 
-        if not os.path.exists(src):
-            print(f"Warning: {src} not found")
+        if not src.exists():
+            print(f"[WARN] {src} not found")
             continue
 
-        if os.path.abspath(src) == os.path.abspath(dst):
-            print(f"Skipping {f} (already in target location)")
+        if src.resolve() == dst.resolve():
             continue
 
         shutil.copy(src, dst)
         print(f"Copied {src} → {dst}")
-
 
 if __name__ == "__main__":
     fetch_stock_data()

@@ -1,37 +1,37 @@
-# src/evaluate_models.py
+import os
 import json
-import joblib
 import numpy as np
 import pandas as pd
-from sklearn.metrics import mean_squared_error, mean_absolute_error
+import joblib
+from sklearn.metrics import mean_squared_error
 
 def main():
+    os.makedirs("metrics", exist_ok=True)  # ✅ ADD THIS LINE
+
     df = pd.read_csv("data/processed/merged_features.csv")
-    metrics = {}
 
-    for t in df["Ticker"].unique():
-        mdir = f"models/{t}"
-        rf = joblib.load(f"{mdir}/rf.joblib")
-        sx = joblib.load(f"{mdir}/scaler_x.joblib")
-        sy = joblib.load(f"{mdir}/scaler_y.joblib")
+    results = {}
 
-        df_t = df[df["Ticker"] == t].copy()
+    for ticker in df["Ticker"].unique():
+        df_t = df[df["Ticker"] == ticker].copy()
+
+        if len(df_t) < 50:
+            continue
+
         X = df_t[["return_lag1","volume_lag1","sentiment_lag1"]].values
         y = df_t["Return"].shift(-1).dropna().values
         X = X[:-1]
 
-        Xs = sx.transform(X)
-        preds = sy.inverse_transform(rf.predict(Xs).reshape(-1,1)).flatten()
+        model = joblib.load(f"models/{ticker}/rf.joblib")
+        preds = model.predict(X)
 
-        metrics[t] = {
-            "RMSE": float(np.sqrt(mean_squared_error(y, preds))),
-            "MAE": float(mean_absolute_error(y, preds))
-        }
+        rmse = float(np.sqrt(mean_squared_error(y, preds)))
+        results[ticker] = {"rmse": rmse}
 
     with open("metrics/evaluation.json", "w") as f:
-        json.dump(metrics, f, indent=2)
+        json.dump(results, f, indent=4)
 
-    print("Saved evaluation.json")
+    print("Saved metrics/evaluation.json")
 
 if __name__ == "__main__":
     main()

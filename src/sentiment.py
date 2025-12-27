@@ -2,7 +2,7 @@ POS_WORDS = {"good", "buy", "up", "rise", "gain", "bull", "profit", "growth"}
 NEG_WORDS = {"bad", "sell", "down", "fall", "loss", "bear", "risk", "crash"}
 
 def compute_sentiment(text: str) -> float:
-    if not isinstance(text, str) or len(text.strip()) == 0:
+    if not isinstance(text, str) or not text.strip():
         return 0.0
 
     words = text.lower().split()

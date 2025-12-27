@@ -1,30 +1,37 @@
 import pandas as pd
 import time
-from pathlib import Path
+import requests
 
-SOURCE = "data/streaming/news_stream.csv"
-SINK = "data/processed/new_sentiment.csv"
-
-BATCH_SIZE = 5
-SLEEP_SECONDS = 5
-
+STREAM_FILE = "data/streaming/news_stream.csv"
+API_URL = "http://localhost:8000/predict"
+WAIT = 3  # seconds
 
 def main():
-    df = pd.read_csv(SOURCE)
+    df = pd.read_csv(STREAM_FILE)
 
-    Path("data/processed").mkdir(parents=True, exist_ok=True)
+    print("📡 Starting stream...")
+    print("-" * 50)
 
-    for i in range(0, len(df), BATCH_SIZE):
-        batch = df.iloc[i:i + BATCH_SIZE]
+    while True:  # infinite streaming
+        for _, row in df.iterrows():
+            payload = {
+                "sentence": row["text"]
+            }
 
-        if Path(SINK).exists():
-            batch.to_csv(SINK, mode="a", header=False, index=False)
-        else:
-            batch.to_csv(SINK, index=False)
+            try:
+                r = requests.post(API_URL, json=payload, timeout=5)
+                out = r.json()
 
-        print(f"Streamed rows {i} → {i + len(batch)}")
-        time.sleep(SLEEP_SECONDS)
+                print(f"[{row['ticker']}]")
+                print("Text      :", row["text"])
+                print("Sentiment :", round(out["sentiment_score"], 3))
+                print("Prediction:", round(out["predicted_return"], 4))
+                print("-" * 50)
 
+            except Exception as e:
+                print("❌ API error:", e)
+
+            time.sleep(WAIT)
 
 if __name__ == "__main__":
     main()

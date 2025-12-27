@@ -2,15 +2,18 @@ schema: '2.0'
 stages:
   ingest:
     cmd: python src/ingest_data.py
-    outs:
-    - path: data/raw
+    deps:
+    - path: data/raw/stock_prices.csv
       hash: md5
-      md5: c67de4fc7e70fb45a936e02506cf8c91.dir
-      size: 1166309
-      nfiles: 3
+      md5: 9774fb2de9aa4b70af6df150353c4123
+      size: 1101424
   features:
     cmd: python src/build_features.py
     deps:
+    - path: data/processed/new_sentiment.csv
+      hash: md5
+      md5: 8966b4bf999055a1035ca5148a450443
+      size: 279187
     - path: data/raw
       hash: md5
       md5: c67de4fc7e70fb45a936e02506cf8c91.dir
@@ -19,82 +22,78 @@ stages:
     outs:
     - path: data/processed/merged_features.csv
       hash: md5
-      md5: 2753e42af95a7ad02942ef348db986f9
-      size: 1580683
+      md5: 3b5574a043c39f6ce5531498cbe70bde
+      size: 1572405
   train:
     cmd: python src/train_models.py
     deps:
     - path: data/processed/merged_features.csv
       hash: md5
-      md5: 2753e42af95a7ad02942ef348db986f9
-      size: 1580683
+      md5: 3b5574a043c39f6ce5531498cbe70bde
+      size: 1572405
     outs:
     - path: models
       hash: md5
-      md5: 2fb1dcaaf5a944fc4d0448c860b73b53.dir
-      size: 120480876
+      md5: 452ae52f95bfa9609a8f49678b9106ba.dir
+      size: 120479853
       nfiles: 12
   evaluate:
     cmd: python src/evaluate_models.py
     deps:
     - path: data/processed/merged_features.csv
       hash: md5
-      md5: 2753e42af95a7ad02942ef348db986f9
-      size: 1580683
+      md5: 3b5574a043c39f6ce5531498cbe70bde
+      size: 1572405
     - path: models
       hash: md5
-      md5: 2fb1dcaaf5a944fc4d0448c860b73b53.dir
-      size: 120480876
+      md5: 452ae52f95bfa9609a8f49678b9106ba.dir
+      size: 120479853
       nfiles: 12
     outs:
     - path: metrics/evaluation.json
       hash: md5
-      md5: d932e0c09c9a25a0dcd34841930dd186
-      size: 263
+      md5: 113ec9ecd720a25accf26eac580ac725
+      size: 172
   drift:
     cmd: python src/drift_detection.py
     deps:
     - path: data/processed/merged_features.csv
       hash: md5
-      md5: 2753e42af95a7ad02942ef348db986f9
-      size: 1580683
-    - path: src/drift_detection.py
-      hash: md5
-      md5: 53cfc12c38b01a69dd6a17a7c4568af5
-      size: 1508
+      md5: 3b5574a043c39f6ce5531498cbe70bde
+      size: 1572405
     outs:
     - path: drift_reports/drift_summary.json
       hash: md5
-      md5: b02788aeb9c6383f6d42fffa221fd1d1
-      size: 390
+      md5: e977a41ba7068c0baf4a4d539070126d
+      size: 374
   retrain_decision:
     cmd: python src/should_retrain.py
     deps:
+    - path: data/processed/new_sentiment.csv
+      hash: md5
+      md5: 8966b4bf999055a1035ca5148a450443
+      size: 279187
     - path: drift_reports/drift_summary.json
       hash: md5
-      md5: b02788aeb9c6383f6d42fffa221fd1d1
-      size: 390
-    - path: src/should_retrain.py
-      hash: md5
-      md5: f0d10a1e559385c7ad47e88175a820d1
-      size: 635
+      md5: e977a41ba7068c0baf4a4d539070126d
+      size: 374
     outs:
     - path: drift_reports/retrain_flag.json
       hash: md5
-      md5: 542694a633acfd23b4f5fd5e2c4c39c6
-      size: 26
+      md5: d36b26934ea0938ff9e75f97b639d76f
+      size: 118
   retrain:
     cmd: python src/retrain_if_drift.py
     deps:
+    - path: data/processed/merged_features.csv
+      hash: md5
+      md5: 3b5574a043c39f6ce5531498cbe70bde
+      size: 1572405
     - path: drift_reports/retrain_flag.json
       hash: md5
-      md5: 542694a633acfd23b4f5fd5e2c4c39c6
-      size: 26
-    - path: src/retrain_if_drift.py
-      hash: md5
-      md5: b08b7fb398753488537fbb5c9be0af31
-      size: 366
+      md5: d36b26934ea0938ff9e75f97b639d76f
+      size: 118
     - path: src/train_models.py
       hash: md5
-      md5: 4b5f7613c1495013bdf0b3609d464af6
-      size: 5054
+      md5: 01768b0568b5a07ff19e51d9f989a786
+      size: 4898
