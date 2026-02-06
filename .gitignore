@@ -1,1 +1,10 @@
 /models
+.gitignore
+.gitattributes
+dvc.log
+reddit_data.csv
+news_articles.csv
+news_articles_1.csv
+mlflow.db
+mlruns.dvc
+/.history
